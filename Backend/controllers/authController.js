@@ -37,17 +37,47 @@ export const registerUser = async (req, res) => {
 };
 
 // Login User
+// export const loginUser = async (req, res) => {
+//   const { email, password, role } = req.body;
+
+//   let userModel;
+//   if (role === "admin") userModel = Admin;
+//   else if (role === "doctor") userModel = Doctor;
+//   else if (role === "patient") userModel = Patient;
+//   else return res.status(400).json({ message: "Invalid role" });
+
+//   const user = await userModel.findOne({ email });
+//   if (user && (await user.matchPassword(password))) {
+//     res.json({
+//       _id: user._id,
+//       name: user.name,
+//       email: user.email,
+//       role: user.role,
+//       token: generateToken(user._id),
+//     });
+//   } else {
+//     res.status(401).json({ message: "Invalid email or password" });
+//   }
+// };
 export const loginUser = async (req, res) => {
-  const { email, password, role } = req.body;
-
-  let userModel;
-  if (role === "admin") userModel = Admin;
-  else if (role === "doctor") userModel = Doctor;
-  else if (role === "patient") userModel = Patient;
-  else return res.status(400).json({ message: "Invalid role" });
-
-  const user = await userModel.findOne({ email });
-  if (user && (await user.matchPassword(password))) {
+    const { email, password, role } = req.body;
+  
+    let userModel;
+    if (role === "admin") userModel = Admin;
+    else if (role === "doctor") userModel = Doctor;
+    else if (role === "patient") userModel = Patient;
+    else return res.status(400).json({ message: "Invalid role selected" });
+  
+    const user = await userModel.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
+    }
+  
+    const isMatch = await user.matchPassword(password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
+  
     res.json({
       _id: user._id,
       name: user.name,
@@ -55,7 +85,4 @@ export const loginUser = async (req, res) => {
       role: user.role,
       token: generateToken(user._id),
     });
-  } else {
-    res.status(401).json({ message: "Invalid email or password" });
-  }
-};
+  };
