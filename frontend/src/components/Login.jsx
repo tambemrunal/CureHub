@@ -4,33 +4,41 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
 const Login = () => {
-  const [form, setForm] = useState({ email: "", password: "", role: "patient" });
+  const [form, setForm] = useState({
+    email: "",
+    password: "",
+    role: "patient",
+  });
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
 
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = (e) =>
+    setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     console.log("Login Request Data:", form); // Debugging
-  
+
     try {
       const userData = await login(form.email, form.password, form.role);
       console.log("Login Response Data:", userData); // Debugging
       toast.success("Login successful!");
-  
+
       // Debug the role before navigating
       if (!userData.role) {
         console.error("User role is undefined:", userData);
         return;
       }
-  
+
       // Redirect based on role
       if (userData.role === "admin") {
+        localStorage.setItem("adminAuth", userData.token);
         navigate("/admin/dashboard");
       } else if (userData.role === "doctor") {
+        localStorage.setItem("token", userData.token);
         navigate("/doctor/dashboard");
       } else if (userData.role === "patient") {
+        localStorage.setItem("patientAuth", userData.token);
         navigate("/patient/dashboard");
       } else {
         console.error("Unknown role:", userData.role);
@@ -40,21 +48,24 @@ const Login = () => {
       toast.error(error.message);
     }
   };
-  
-  
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="w-full max-w-md px-6 py-8 bg-white rounded-xl shadow-lg transform transition-all duration-300 hover:shadow-xl">
         <div className="mb-8 text-center">
-          <h2 className="text-3xl font-extrabold text-gray-800">Welcome Back</h2>
+          <h2 className="text-3xl font-extrabold text-gray-800">
+            Welcome Back
+          </h2>
           <p className="mt-2 text-sm text-gray-600">Sign in to your account</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Email */}
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-700"
+            >
               Email Address
             </label>
             <input
@@ -70,7 +81,10 @@ const Login = () => {
 
           {/* Password */}
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-gray-700"
+            >
               Password
             </label>
             <input
@@ -83,7 +97,10 @@ const Login = () => {
               required
             />
             <div className="flex justify-end mt-1">
-              <button type="button" className="text-xs text-blue-600 hover:text-blue-500 transition duration-200">
+              <button
+                type="button"
+                className="text-xs text-blue-600 hover:text-blue-500 transition duration-200"
+              >
                 Forgot Password?
               </button>
             </div>
@@ -91,7 +108,10 @@ const Login = () => {
 
           {/* Role Selection */}
           <div>
-            <label htmlFor="role" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="role"
+              className="block text-sm font-medium text-gray-700"
+            >
               Select Role
             </label>
             <select
@@ -120,7 +140,10 @@ const Login = () => {
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600">
             Don't have an account?{" "}
-            <button onClick={() => navigate("/register")} className="font-medium text-blue-600 hover:text-blue-500 transition duration-200">
+            <button
+              onClick={() => navigate("/register")}
+              className="font-medium text-blue-600 hover:text-blue-500 transition duration-200"
+            >
               Create Account
             </button>
           </p>

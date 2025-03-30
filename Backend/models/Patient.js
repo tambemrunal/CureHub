@@ -39,3 +39,4 @@ patientSchema.methods.matchPassword = async function (enteredPassword) {
 const Patient = mongoose.model("Patient", patientSchema);
 
 export default Patient;
+  

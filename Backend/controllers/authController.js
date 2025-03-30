@@ -86,3 +86,33 @@ export const loginUser = async (req, res) => {
       token: generateToken(user._id),
     });
   };
+
+  export const getCurrentUser = async (req, res) => {
+    try {
+      let user;
+      
+      // Check which model the user belongs to based on their role
+      switch(req.user.role) {
+        case 'admin':
+          user = await Admin.findById(req.user._id).select('-password');
+          break;
+        case 'doctor':
+          user = await Doctor.findById(req.user._id).select('-password');
+          break;
+        case 'patient':
+          user = await Patient.findById(req.user._id).select('-password');
+          break;
+        default:
+          return res.status(400).json({ message: 'Invalid user role' });
+      }
+  
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+  
+      res.json(user);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Server Error' });
+    }
+  };
