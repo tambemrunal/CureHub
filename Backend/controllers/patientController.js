@@ -94,7 +94,7 @@ export const getPatientAppointments = async (req, res) => {
 // Update patient profile
 export const updatePatientProfile = async (req, res) => {
   try {
-    const { name, mobile, age, gender } = req.body;
+    const { name, mobile, age, gender, address, bloodGroup, emergencyContact } = req.body;
     const patientId = req.user._id;
 
     const patient = await Patient.findById(patientId);
@@ -104,6 +104,9 @@ export const updatePatientProfile = async (req, res) => {
       patient.mobile = mobile || patient.mobile;
       patient.age = age || patient.age;
       patient.gender = gender || patient.gender;
+      patient.address = address || patient.address;
+      patient.bloodGroup = bloodGroup || patient.bloodGroup;
+      patient.emergencyContact = emergencyContact || patient.emergencyContact;
 
       if (req.file) {
         patient.profileImg = req.file.path;
@@ -118,15 +121,18 @@ export const updatePatientProfile = async (req, res) => {
         mobile: updatedPatient.mobile,
         age: updatedPatient.age,
         gender: updatedPatient.gender,
+        address: updatedPatient.address,
+        bloodGroup: updatedPatient.bloodGroup,
+        emergencyContact: updatedPatient.emergencyContact,
         profileImg: updatedPatient.profileImg,
-        role: updatedPatient.role
+        role: updatedPatient.role,
       });
     } else {
       res.status(404);
-      throw new Error('Patient not found');
+      throw new Error("Patient not found");
     }
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server Error' });
+    res.status(500).json({ message: "Server Error" });
   }
 };

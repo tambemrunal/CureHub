@@ -1,44 +1,35 @@
-// frontend/src/pages/PatientDashboard.jsx
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
-import BookAppointment from '../components/patient/BookAppointment';
-import AppointmentsHistory from '../components/patient/AppointmentsHistory';
-import EditProfile from '../components/patient/EditProfile';
+import React, { useState } from "react";
+import DashboardLayout from "../components/patient/DashboardLayout";
+import BookAppointment from "../components/patient/BookAppointment";
+import AppointmentsHistory from "../components/patient/AppointmentsHistory";
+import EditProfile from "../components/patient/EditProfile";
+import { Calendar, User, ClipboardList } from "lucide-react";
 
 const PatientDashboard = () => {
-  const [activeTab, setActiveTab] = useState('book');
-  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState("book");
+
+  const tabs = [
+    { id: "book", label: "Book Appointment", icon: <ClipboardList size={18} /> },
+    { id: "history", label: "Appointment History", icon: <Calendar size={18} /> },
+    { id: "profile", label: "Edit Profile", icon: <User size={18} /> },
+  ];
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-6">Patient Dashboard</h1>
-      
-      <div className="flex mb-6 border-b">
-        <button
-          className={`py-2 px-4 ${activeTab === 'book' ? 'border-b-2 border-blue-500' : ''}`}
-          onClick={() => setActiveTab('book')}
-        >
-          Book Appointment
-        </button>
-        <button
-          className={`py-2 px-4 ${activeTab === 'history' ? 'border-b-2 border-blue-500' : ''}`}
-          onClick={() => setActiveTab('history')}
-        >
-          Appointment History
-        </button>
-        <button
-          className={`py-2 px-4 ${activeTab === 'profile' ? 'border-b-2 border-blue-500' : ''}`}
-          onClick={() => setActiveTab('profile')}
-        >
-          Edit Profile
-        </button>
-      </div>
+    <DashboardLayout activeTab={activeTab} setActiveTab={setActiveTab}>
+      <div className="max-w-6xl mx-auto">
+       
+        
+       
 
-      {activeTab === 'book' && <BookAppointment />}
-      {activeTab === 'history' && <AppointmentsHistory />}
-      {activeTab === 'profile' && <EditProfile />}
-    </div>
+        <div className="p-1">
+          <div className="transition-opacity duration-300">
+            {activeTab === "book" && <BookAppointment />}
+            {activeTab === "history" && <AppointmentsHistory />}
+            {activeTab === "profile" && <EditProfile />}
+          </div>
+        </div>
+      </div>
+    </DashboardLayout>
   );
 };
 

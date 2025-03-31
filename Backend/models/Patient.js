@@ -10,6 +10,10 @@ const patientSchema = mongoose.Schema(
     age: { type: Number },
     mobile: { type: String },
     gender: { type: String },
+    address: { type: String },
+    bloodGroup: { type: String },
+    emergencyContact: { type: String },
+    profileImg: { type: String },
     medicalHistory: [
       {
         doctorId: { type: mongoose.Schema.Types.ObjectId, ref: "Doctor" },
@@ -39,4 +43,3 @@ patientSchema.methods.matchPassword = async function (enteredPassword) {
 const Patient = mongoose.model("Patient", patientSchema);
 
 export default Patient;
-  
