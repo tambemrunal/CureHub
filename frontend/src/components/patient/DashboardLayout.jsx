@@ -56,6 +56,18 @@ const DashboardLayout = ({ children, activeTab, setActiveTab }) => {
               active={activeTab === "profile"}
               onClick={() => setActiveTab("profile")}
             />
+            <SidebarLink
+              icon={<User size={20} />}
+              label="Symptom Checker Chatbot"
+              active={activeTab === "chatbot"}
+              onClick={() => setActiveTab("chatbot")}
+            />
+            <SidebarLink
+              icon={<User size={20} />}
+              label="Report Analyzer"
+              active={activeTab === "analyzer"}
+              onClick={() => setActiveTab("analyzer")}
+            />
           </nav>
         </div>
 
