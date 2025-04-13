@@ -1,4 +1,4 @@
-// frontend/src/components/Admin/AddDoctor.jsx
+
 import React, { useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";

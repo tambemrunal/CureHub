@@ -1,4 +1,4 @@
-// frontend/src/components/doctor/Availability.jsx
+
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
