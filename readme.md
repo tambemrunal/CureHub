@@ -2,6 +2,53 @@
 
 An AI-powered, role-based digital health platform designed to streamline doctor-patient interactions, automate appointment bookings, and provide predictive health insights. The platform is built with modularity in mind, catering to **Patients**, **Doctors**, and **Admins** while leveraging artificial intelligence to enhance decision-making.
 
+# CureHub
+
+CureHub is a comprehensive healthcare management system designed to streamline interactions between doctors, patients, and administrators. It offers an intuitive interface and robust features to enhance the efficiency of medical services.
+
+---
+
+## 🚀 Quick Links
+
+### Video Presentation
+Watch the detailed video presentation:  
+[View Video](https://drive.google.com/file/d/1xxA2JKM82k5dGk_znqzR0lGGmGzP5XDh/view?usp=drivesdk)
+
+### Prototype
+Explore the live prototype:  
+[Visit CureHub](https://curehub-nok9.onrender.com)
+
+#### Login Pages
+- [Doctor Login](https://curehub-nok9.onrender.com/login)
+- [Admin Login](https://curehub-nok9.onrender.com/login)
+- [Patient Login](https://curehub-nok9.onrender.com/login)
+
+#### Credentials
+**Doctor Login**  
+- Email: aryan.mehta@example.com  
+- Password: Password@123  
+
+**Admin Login**  
+- Email: admin@gmail.com  
+- Password: Password@123  
+
+**Patient Login**  
+- Email: patient@gmail.com  
+- Password: Patient@123  
+
+---
+
+### Presentation
+Access the project presentation:  
+[View PPT](https://drive.google.com/file/d/1gZkSkHHXW-IaU0reQpS7mPfD5auQk86n/view?usp=sharing)
+
+---
+
+
+
+
+
+
 ## Table of Contents
 - [Introduction](#introduction)
 - [Features](#features)
@@ -100,23 +147,46 @@ For a graphical representation, refer to the [PlantUML code](#plantuml-code) pro
 - Python 3.7+ (for AI microservice)
 - npm or yarn package manager
 
-### Backend Setup
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/ADITYABHAVAR17/CureHub.git
+# Backend Setup
 
-   cd frontend
-   npm i
-   npm run build
+Follow the steps below to set up the backend for **CureHub**:
 
-   cd ..
+---
 
-   cd Backend
-   npm i
-   npm run dev
+## Step 1: Clone the Repository
 
- ## Ensure You have added .env in Backend
+Clone the CureHub repository to your local machine:
 
+```bash
+git clone https://github.com/ADITYABHAVAR17/CureHub.git
+```
+
+
+## Step 2: Set Up the Frontend
+Navigate to the frontend directory, install dependencies, and build the frontend:
+```bash
+cd frontend
+npm install
+npm run build
+```
+## Step 3: Set Up the Backend
+Navigate back to the root directory, then to the Backend folder. Install dependencies and start the development server:
+```bash
+cd Backend
+npm install
+npm run dev
+```
+
+## Step 4: Add Environment Variables
+Ensure that you have a .env file configured in the Backend directory. The .env file should include the necessary environment variables, such as:
+```bash
+DATABASE_URL=<your-database-url>
+JWT_SECRET=<your-secret-key>
+PORT=5000
+GEMINI_API_KEY=api_key
+EMAIL_USER=your_email
+EMAIL_PASS=your_email_Pass
+```
 
 
 ---
