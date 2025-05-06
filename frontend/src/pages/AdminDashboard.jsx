@@ -3,6 +3,9 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import AddDoctor from "../components/Admin/AddDoctor";
 import DoctorList from "../components/Admin/DoctorList";
+import { useEffect } from "react";
+import axios from "axios";
+import { toast } from "react-toastify";
 
 // Import icons
 import {
@@ -18,6 +21,10 @@ import {
 function AdminDashboard() {
   const [activeComponent, setActiveComponent] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [doctors, setDoctors] = useState([]);
+  const [patients, setPatients] = useState([]);
+
+  
 
   // Sidebar animation variants
   const sidebarVariants = {
@@ -47,6 +54,7 @@ function AdminDashboard() {
       transition: { duration: 0.5 },
     },
   };
+  
 
   const renderComponent = () => {
     switch (activeComponent) {
@@ -55,9 +63,64 @@ function AdminDashboard() {
       case "doctorList":
         return <DoctorList />;
       default:
-        return <DashboardOverview />;
+        return <DashboardOverview doctors={doctors} patients ={patients}/>;
     }
   };
+  useEffect(() => {
+    const fetchDoctors = async () => {
+      try {
+        const token = localStorage.getItem("adminAuth"); // Use your admin token key here
+        if (!token) {
+          toast.error("Authentication required");
+          return;
+        }
+  
+        const response = await axios.get("/api/admin/doctors", {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+  
+        setDoctors(response.data);
+ 
+      } catch (error) {
+        console.error("Error fetching doctors:", error);
+        toast.error("Error fetching doctors");
+     
+      }
+    };
+  
+    fetchDoctors();
+  }, []);
+
+  useEffect(() => {
+    const fetchPatients = async () => {
+      try {
+        const token = localStorage.getItem("adminAuth"); // Make sure it's your admin token
+        if (!token) {
+          toast.error("Authentication required");
+          return;
+        }
+  
+        const response = await axios.get("/api/admin/patients", {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+  
+        setPatients(response.data);
+       
+      } catch (error) {
+        console.error("Error fetching patients:", error);
+        toast.error("Error fetching patients");
+      
+      }
+    };
+  
+    fetchPatients();
+  }, []);
 
   return (
     <div className="flex h-screen bg-gray-100">
@@ -189,7 +252,7 @@ const SidebarItem = ({ icon, text, isActive, onClick, isExpanded }) => {
 };
 
 // Dashboard Overview Component
-const DashboardOverview = () => {
+const DashboardOverview = ({doctors , patients}) => {
   const itemVariants = {
     hidden: { y: 20, opacity: 0 },
     visible: {
@@ -199,6 +262,7 @@ const DashboardOverview = () => {
     },
   };
 
+ 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       <motion.div
@@ -206,7 +270,7 @@ const DashboardOverview = () => {
         variants={itemVariants}
       >
         <h3 className="text-lg font-bold text-gray-700 mb-2">Total Doctors</h3>
-        <p className="text-3xl font-bold text-blue-600">24</p>
+        <p className="text-3xl font-bold text-blue-600">{doctors.length}</p>
         <p className="text-sm text-gray-500 mt-2">+3 this month</p>
       </motion.div>
 
@@ -217,18 +281,11 @@ const DashboardOverview = () => {
         <h3 className="text-lg font-bold text-gray-700 mb-2">
           Active Patients
         </h3>
-        <p className="text-3xl font-bold text-green-600">143</p>
+        <p className="text-3xl font-bold text-green-600">{patients.length}</p>
         <p className="text-sm text-gray-500 mt-2">+12 this week</p>
       </motion.div>
 
-      <motion.div
-        className="bg-white rounded-lg shadow-md p-6 border-l-4 border-purple-500"
-        variants={itemVariants}
-      >
-        <h3 className="text-lg font-bold text-gray-700 mb-2">Appointments</h3>
-        <p className="text-3xl font-bold text-purple-600">56</p>
-        <p className="text-sm text-gray-500 mt-2">Today</p>
-      </motion.div>
+     
 
       <motion.div
         className="bg-white rounded-lg shadow-md p-6 md:col-span-2 lg:col-span-3"

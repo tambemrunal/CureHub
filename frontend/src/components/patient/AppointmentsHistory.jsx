@@ -7,7 +7,9 @@ import {
   AlertCircle, CheckCircle, RefreshCw
 } from "lucide-react";
 
-const AppointmentsHistory = () => {
+
+
+const AppointmentsHistory = ({setActiveTab}) => {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -15,6 +17,7 @@ const AppointmentsHistory = () => {
   const [dateFilter, setDateFilter] = useState({ from: null, to: null });
   const [showFilters, setShowFilters] = useState(false);
   const [expandedAppointment, setExpandedAppointment] = useState(null);
+  
 
   useEffect(() => {
     const fetchAppointments = async () => {
@@ -41,7 +44,7 @@ const AppointmentsHistory = () => {
     };
     fetchAppointments();
   }, []);
-
+  
   const getStatusIcon = (status) => {
     switch (status) {
       case "Accepted":
@@ -227,7 +230,7 @@ const AppointmentsHistory = () => {
           </div>
           <h3 className="text-gray-800 text-xl font-semibold mb-2">No appointments yet</h3>
           <p className="text-gray-500 max-w-md mx-auto mb-6">You haven't scheduled any appointments with our doctors. Book your first appointment to get started.</p>
-          <button className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all shadow-md font-medium">
+          <button className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all shadow-md font-medium" onClick={() => setActiveTab("book")} >
             Book Your First Appointment
           </button>
         </div>
