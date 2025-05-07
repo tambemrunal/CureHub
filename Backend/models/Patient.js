@@ -20,9 +20,13 @@ const patientSchema = mongoose.Schema(
         symptoms: { type: String },
         date: { type: String },
         time: { type: String },
-        status: { type: String, enum: ["Accepted", "Rejected", "Pending"], default: "Pending" }
-      }
-    ]
+        status: {
+          type: String,
+          enum: ["Accepted", "Rejected", "Pending"],
+          default: "Pending",
+        },
+      },
+    ],
   },
   { timestamps: true }
 );

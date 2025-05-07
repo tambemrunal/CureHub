@@ -9,7 +9,9 @@ import path from "path";
 import * as tf from "@tensorflow/tfjs";
 import { fileURLToPath } from "url";
 import symptomsToSpecialization from "../data/symptomsToSpecialization.json" assert { type: "json" };
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 // Get all doctors with availability
 export const getDoctorsWithAvailability = async (req, res) => {
   try {
@@ -286,49 +288,157 @@ const processFileWithAI = async (fileBuffer) => {
 // Define a mapping of symptoms to specializations
 // This is a simplified example. In a real-world scenario, this mapping would be more comprehensive.
 
+// export const recommendDoctors = async (req, res) => {
+//   try {
+//     const { symptoms } = req.body; // Example: ["fever", "cough"]
+
+//     if (!symptoms || !Array.isArray(symptoms)) {
+//       return res.status(400).json({ message: "Invalid symptoms provided." });
+//     }
+
+//     // Map symptoms to specializations using the JSON file
+//     const specializations = [
+//       ...new Set(
+//         symptoms
+//           .map((symptom) => {
+//             const mapping = symptomsToSpecialization.find(
+//               (item) => item.symptom === symptom
+//             );
+//             return mapping ? mapping.specialization : null;
+//           })
+//           .filter(Boolean)
+//       ),
+//     ];
+
+//     if (!specializations.length) {
+//       return res
+//         .status(404)
+//         .json({ message: "No specializations found for the given symptoms." });
+//     }
+
+//     // Fetch doctors matching the specializations
+//     const doctors = await Doctor.find({
+//       specialization: { $in: specializations },
+//     });
+
+//     if (!doctors.length) {
+//       return res
+//         .status(404)
+//         .json({ message: "No doctors found for the given symptoms." });
+//     }
+
+//     res.status(200).json({ doctors });
+//   } catch (error) {
+//     res
+//       .status(500)
+//       .json({ message: "An error occurred.", error: error.message });
+//   }
+// };
+
 export const recommendDoctors = async (req, res) => {
   try {
-    const { symptoms } = req.body; // Example: ["fever", "cough"]
+    const { symptoms } = req.body;
 
     if (!symptoms || !Array.isArray(symptoms)) {
       return res.status(400).json({ message: "Invalid symptoms provided." });
     }
 
-    // Map symptoms to specializations using the JSON file
-    const specializations = [
-      ...new Set(
-        symptoms
-          .map((symptom) => {
-            const mapping = symptomsToSpecialization.find(
-              (item) => item.symptom === symptom
-            );
-            return mapping ? mapping.specialization : null;
-          })
-          .filter(Boolean)
-      ),
-    ];
+    // Fetch all doctors with relevant fields
+    const allDoctors = await Doctor.find({})
+      .select("_id name specialization degree experience bio")
+      .lean();
 
-    if (!specializations.length) {
+    if (!allDoctors.length) {
       return res
         .status(404)
-        .json({ message: "No specializations found for the given symptoms." });
+        .json({ message: "No doctors found in the system." });
     }
 
-    // Fetch doctors matching the specializations
-    const doctors = await Doctor.find({
-      specialization: { $in: specializations },
+    // Prepare prompt for Gemini AI
+    const prompt = {
+      contents: [
+        {
+          parts: [
+            {
+              text: `I have a patient with the following symptoms: ${symptoms.join(
+                ", "
+              )}.
+          
+          Here is a list of doctors with their specializations and experience:
+          ${JSON.stringify(allDoctors, null, 2)}
+          
+          Please analyze these symptoms and recommend the most suitable doctors from the list.
+          Consider their specialization, experience, and other relevant factors.
+          
+          Return your response as a JSON array of doctor IDs in order of relevance (most relevant first).
+          Format: ["id1", "id2", "id3"]
+          Only return the array of IDs, nothing else.`,
+            },
+          ],
+        },
+      ],
+    };
+
+    // Call Gemini 2.0 Flash API directly
+    const response = await axios.post(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      prompt,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    // Extract and parse the response
+    const responseText = response.data.candidates[0].content.parts[0].text;
+    let recommendedDoctorIds;
+
+    try {
+      recommendedDoctorIds = JSON.parse(responseText.trim());
+      if (!Array.isArray(recommendedDoctorIds)) {
+        throw new Error("Invalid response format from AI");
+      }
+    } catch (error) {
+      console.error("Error parsing AI response:", responseText, error);
+      return res.status(500).json({
+        message: "Error processing AI recommendations.",
+        error: "Invalid response format from AI",
+      });
+    }
+
+    // Fetch complete doctor details for the recommended IDs
+    const recommendedDoctors = await Doctor.find({
+      _id: { $in: recommendedDoctorIds },
     });
 
-    if (!doctors.length) {
-      return res
-        .status(404)
-        .json({ message: "No doctors found for the given symptoms." });
+    // Maintain the order from Gemini's response
+    const orderedDoctors = recommendedDoctorIds
+      .map((id) => recommendedDoctors.find((doc) => doc._id.toString() === id))
+      .filter(Boolean);
+
+    res.status(200).json({
+      success: true,
+      doctors: orderedDoctors,
+      aiRecommendation: true,
+    });
+  } catch (error) {
+    console.error("Error in recommendDoctors:", error);
+
+    let errorMessage = "An error occurred while recommending doctors.";
+    if (error.response) {
+      // Handle API response errors
+      errorMessage = `AI API Error: ${error.response.status} - ${error.response.statusText}`;
+      if (error.response.data && error.response.data.error) {
+        errorMessage += ` - ${error.response.data.error.message}`;
+      }
     }
 
-    res.status(200).json({ doctors });
-  } catch (error) {
-    res
-      .status(500)
-      .json({ message: "An error occurred.", error: error.message });
+    res.status(500).json({
+      success: false,
+      message: errorMessage,
+      error: error.message,
+      errorDetails: error.response?.data || error,
+    });
   }
 };

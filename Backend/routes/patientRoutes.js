@@ -18,6 +18,7 @@ import path from "path";
 const router = express.Router();
 
 router.get("/doctors", protect, getDoctorsWithAvailability);
+router.get("/doctors/data", getDoctorsWithAvailability);
 router.post("/appointments", protect, bookAppointment);
 router.get("/appointments", protect, getPatientAppointments);
 router.put("/profile", protect, updatePatientProfile);
