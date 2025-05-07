@@ -6,6 +6,7 @@ import Doctor from "../models/Doctor.js";
 import Patient from "../models/Patient.js";
 import nodemailer from "nodemailer";
 
+
 // Generate random password
 const generatePassword = (name) => {
   const randomString = Math.random().toString(36).slice(-6);
@@ -101,3 +102,12 @@ export const deleteDoctor = async (req, res) => {
     }
   };
   
+  export const getPatients = async (req, res) => {
+    try {
+      const patients = await Patient.find({}).select("-password");
+      res.json(patients);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Server Error" });
+    }
+  };

@@ -44,7 +44,7 @@ const PatientDashboard = () => {
         <div className="p-1">
           <div className="transition-opacity duration-300">
             {activeTab === "book" && <BookAppointment />}
-            {activeTab === "history" && <AppointmentsHistory />}
+            {activeTab === "history" && <AppointmentsHistory setActiveTab={setActiveTab} />}
             {activeTab === "profile" && <EditProfile />}
             {activeTab === "chatbot" && <Chatbot />}
             {activeTab === "analyzer" && <FileUpload />}

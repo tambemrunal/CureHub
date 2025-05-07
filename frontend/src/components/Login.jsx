@@ -35,9 +35,9 @@ const Login = () => {
     }
     if (field === "password") {
       if (!value) msg = "Password is required";
-      else if (!isValidPassword(value))
-        msg =
-          "Must be ≥8 chars, include uppercase, lowercase, number & special char";
+      // else if (!isValidPassword(value))
+      //   msg =
+      //     "Must be ≥8 chars, include uppercase, lowercase, number & special char";
     }
     setErrors((prev) => ({ ...prev, [field]: msg }));
   };
