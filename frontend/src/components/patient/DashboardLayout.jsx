@@ -1,5 +1,14 @@
 import React, { useState } from "react";
-import { User, Calendar, ClipboardList, LogOut, Menu, X, ChevronRight, Bell } from "lucide-react";
+import {
+  User,
+  Calendar,
+  ClipboardList,
+  LogOut,
+  Menu,
+  X,
+  ChevronRight,
+  Bell,
+} from "lucide-react";
 import { toast } from "react-toastify";
 import PopupModal from "../../model/PopUpModal";
 
@@ -67,6 +76,18 @@ const DashboardLayout = ({ children, activeTab, setActiveTab }) => {
               label="Report Analyzer"
               active={activeTab === "analyzer"}
               onClick={() => setActiveTab("analyzer")}
+            />
+            <SidebarLink
+              icon={<User size={20} />}
+              label="MedicalVideoSearch"
+              active={activeTab === "MedicalVideoSearch"}
+              onClick={() => setActiveTab("MedicalVideoSearch")}
+            />
+            <SidebarLink
+              icon={<User size={20} />}
+              label="DoctorRecommendation"
+              active={activeTab === "DoctorRecommendation"}
+              onClick={() => setActiveTab("DoctorRecommendation")}
             />
           </nav>
         </div>
