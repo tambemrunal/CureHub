@@ -29,6 +29,7 @@ const appointmentSchema = new mongoose.Schema(
         medicine: String,
         dosage: String,
         instructions: String,
+        
       },
     ], // Added prescription field
     status: {
@@ -36,6 +37,10 @@ const appointmentSchema = new mongoose.Schema(
       enum: ["Accepted", "Rejected", "Pending" , "Cancelled"],
       default: "Pending",
     },
+    isFilled: {
+      type: Boolean,
+      default: false
+    }
   },
   { timestamps: true } // Automatically adds createdAt and updatedAt fields
 );

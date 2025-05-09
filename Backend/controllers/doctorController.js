@@ -175,7 +175,7 @@ export const getPatientAppointments = async (req, res) => {
     // Fetch appointments related to the logged-in doctor
     const appointments = await Appointment.find({ doctorId })
       .populate("patientId", "name email") // Populate patient details
-      .select("_id patientId date time symptoms status");
+      .select("_id patientId date time symptoms status isFilled prescription");
 
     if (!appointments.length) {
       return res
@@ -193,6 +193,8 @@ export const getPatientAppointments = async (req, res) => {
       date: appointment.date,
       time: appointment.time,
       status: appointment.status,
+      isFilled : appointment.isFilled,
+      prescription:appointment.prescription
     }));
 
     res.json(formattedAppointments);
@@ -320,7 +322,7 @@ const addPrescription = async (req, res) => {
       return res.status(400).json({
         message: "Prescription must be an array of medicine objects",
       });
-    } // Removed the semicolon here
+    }
 
     // Validate each prescription item
     for (const item of prescription) {
@@ -337,7 +339,6 @@ const addPrescription = async (req, res) => {
       // instructions is optional, so no validation needed
     }
 
-    // Rest of your function remains the same...
     // Validate IDs
     if (
       !mongoose.Types.ObjectId.isValid(appointmentId) ||
@@ -367,8 +368,10 @@ const addPrescription = async (req, res) => {
       });
     }
 
-    // Update the prescription (replace entire array)
+    // Update prescription and mark as filled
     appointment.prescription = prescription;
+    appointment.isFilled = true;
+
     await appointment.save();
 
     res.status(200).json({
@@ -381,6 +384,7 @@ const addPrescription = async (req, res) => {
         date: appointment.date,
         time: appointment.time,
         status: appointment.status,
+        isFilled: appointment.isFilled,
         prescription: appointment.prescription,
       },
     });
@@ -392,6 +396,8 @@ const addPrescription = async (req, res) => {
     });
   }
 };
+
+
 // Get all accepted patients for the doctor
 const getAcceptedPatients = async (req, res) => {
   console.log(req.query);

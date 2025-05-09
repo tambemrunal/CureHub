@@ -21,6 +21,7 @@ const DoctorPrescriptionDashboard = ({ doctorId }) => {
       // Filter only accepted
       const accepted = data.filter((appt) => appt.status === "Accepted");
       setAppointments(accepted);
+      console.log(accepted);
     } catch (err) {
       setError("Failed to load appointments.");
     } finally {
@@ -30,6 +31,7 @@ const DoctorPrescriptionDashboard = ({ doctorId }) => {
 
   useEffect(() => {
     fetchAppointments();
+    
   }, []);
 
   const handleGivePrescription = (patient) => {
@@ -50,15 +52,20 @@ const DoctorPrescriptionDashboard = ({ doctorId }) => {
 
   // Filter appointments based on search term
   const filteredAppointments = appointments.filter(
-    (appointment) =>
-      appointment.patientName
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
+  (appointment) =>
+     (appointment.patientName
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase()) ||
       appointment.patientEmail
         .toLowerCase()
         .includes(searchTerm.toLowerCase()) ||
-      appointment.symptoms.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+      appointment.symptoms.toLowerCase().includes(searchTerm.toLowerCase())) 
+     && !appointment.isFilled 
+    // Only show appointments where prescription is NOT filled
+);
+
+
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-4 md:p-8">

@@ -18,6 +18,10 @@ import Availability from "../components/doctor/Availability";
 import Appointments from "../components/doctor/Appointments";
 import PopupModal from "../model/PopUpModal";
 import DoctorPrescriptionDashboard from "../components/doctor/DoctorPrescriptionDashboard ";
+import FilledAppointmentsDashboard from "../components/doctor/FilledAppointmentsDashboard";
+
+
+
 
 const DoctorDashboard = () => {
   const [activeTab, setActiveTab] = useState("profile");
@@ -85,6 +89,11 @@ const DoctorDashboard = () => {
     {
       id: "prescription",
       label: "Give Prescription",
+      icon: <Calendar className="mr-3" size={20} />,
+    },
+    {
+      id: "prescriptionhistory",
+      label: "User Prescription History",
       icon: <Calendar className="mr-3" size={20} />,
     },
   ];
@@ -191,6 +200,9 @@ const DoctorDashboard = () => {
             )}
             {activeTab === "prescription" && (
               <DoctorPrescriptionDashboard doctorId={doctor._id} />
+            )}
+             {activeTab === "prescriptionhistory" && (
+              <FilledAppointmentsDashboard />
             )}
           </div>
         </div>
