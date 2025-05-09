@@ -17,11 +17,16 @@ const doctorSchema = mongoose.Schema(
     bio: { type: String },
     availability: [
       {
-        date: String, 
-        timeSlots: [String] 
-      }
+        date: String,
+        timeSlots: [String],
+      },
     ],
-    patients: [{ type: mongoose.Schema.Types.ObjectId, ref: "Patient" }]
+    ratings: {
+      averageRating: { type: Number, default: 0 }, // Average rating for the doctor
+      totalRatings: { type: Number, default: 0 }, // Total number of ratings
+    },
+    consultationCount: { type: Number, default: 0 }, // Total number of consultations
+    patients: [{ type: mongoose.Schema.Types.ObjectId, ref: "Patient" }],
   },
   { timestamps: true }
 );

@@ -8,6 +8,7 @@ import Chatbot from "../components/patient/Chatbot";
 import FileUpload from "../components/patient/FileUpload";
 import MedicalVideoSearch from "../components/patient/MedicalVideoSearch";
 import DoctorRecommendation from "../components/patient/DoctorRecommendation";
+import MedicineAnalyzer from "../components/patient/MedicineAnalyzer";
 
 const PatientDashboard = () => {
   const [activeTab, setActiveTab] = useState("book");
@@ -36,6 +37,11 @@ const PatientDashboard = () => {
       label: "DoctorRecommendation",
       icon: <User size={18} />,
     },
+    {
+      id: "MedicineAnalyzer",
+      label: "MedicineAnalyzer",
+      icon: <User size={18} />,
+    },
   ];
 
   return (
@@ -44,12 +50,15 @@ const PatientDashboard = () => {
         <div className="p-1">
           <div className="transition-opacity duration-300">
             {activeTab === "book" && <BookAppointment />}
-            {activeTab === "history" && <AppointmentsHistory setActiveTab={setActiveTab} />}
+            {activeTab === "history" && (
+              <AppointmentsHistory setActiveTab={setActiveTab} />
+            )}
             {activeTab === "profile" && <EditProfile />}
             {activeTab === "chatbot" && <Chatbot />}
             {activeTab === "analyzer" && <FileUpload />}
             {activeTab === "MedicalVideoSearch" && <MedicalVideoSearch />}
             {activeTab === "DoctorRecommendation" && <DoctorRecommendation />}
+            {activeTab === "MedicineAnalyzer" && <MedicineAnalyzer />}
           </div>
         </div>
       </div>

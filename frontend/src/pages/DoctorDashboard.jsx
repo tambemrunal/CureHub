@@ -17,6 +17,7 @@ import EditProfile from "../components/doctor/EditProfile";
 import Availability from "../components/doctor/Availability";
 import Appointments from "../components/doctor/Appointments";
 import PopupModal from "../model/PopUpModal";
+import DoctorPrescriptionDashboard from "../components/doctor/DoctorPrescriptionDashboard ";
 
 const DoctorDashboard = () => {
   const [activeTab, setActiveTab] = useState("profile");
@@ -34,7 +35,7 @@ const DoctorDashboard = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         setDoctor(response.data);
-        console.log("Doctor are" , response.data);
+        console.log("Doctor are", response.data);
         // Welcome modal for doctors
         setModalMessage(`Welcome back, Dr. ${response.data.name}!`);
         setShowModal(true);
@@ -79,6 +80,11 @@ const DoctorDashboard = () => {
     {
       id: "appointments",
       label: "Appointments",
+      icon: <Calendar className="mr-3" size={20} />,
+    },
+    {
+      id: "prescription",
+      label: "Give Prescription",
       icon: <Calendar className="mr-3" size={20} />,
     },
   ];
@@ -182,6 +188,9 @@ const DoctorDashboard = () => {
             )}
             {activeTab === "appointments" && (
               <Appointments doctorId={doctor._id} />
+            )}
+            {activeTab === "prescription" && (
+              <DoctorPrescriptionDashboard doctorId={doctor._id} />
             )}
           </div>
         </div>

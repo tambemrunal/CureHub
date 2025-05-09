@@ -3,21 +3,32 @@
 // Backend/routes/authRoutes.js
 import express from "express";
 
-import { 
-  updateDoctorProfile, 
-  addAvailability, 
-  getAvailability, 
-  getPatientAppointments, 
-  updateAppointmentStatus 
+import {
+  updateDoctorProfile,
+  addAvailability,
+  getAvailability,
+  getPatientAppointments,
+  updateAppointmentStatus,
 } from "../controllers/doctorController.js";
 import { protect } from "../middleware/authMiddleware.js";
+import {
+  getAcceptedPatients,
+  addPrescription,
+} from "../controllers/doctorController.js";
 
 const router = express.Router();
 // Doctor specific routes
-router.put('/profile', protect, updateDoctorProfile);
-router.post('/availability', protect, addAvailability);
-router.get('/availability', protect, getAvailability);
-router.get('/appointments', protect, getPatientAppointments);
-router.put('/appointments', protect, updateAppointmentStatus);
+router.put("/profile", protect, updateDoctorProfile);
+router.post("/availability", protect, addAvailability);
+router.get("/availability", protect, getAvailability);
+router.get("/appointments", protect, getPatientAppointments);
+router.put("/appointments", protect, updateAppointmentStatus);
+
+router.get("/accepted-patients", protect, getAcceptedPatients);
+router.put(
+  "/patients/:patientId/records/:recordId/prescription",
+  protect,
+  addPrescription
+);
 
 export default router;
