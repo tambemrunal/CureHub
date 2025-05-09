@@ -44,6 +44,31 @@ const AppointmentsHistory = ({setActiveTab}) => {
     };
     fetchAppointments();
   }, []);
+
+  const cancelAppointment = async (appointmentId) => {
+    try {
+      const token = localStorage.getItem("patientAuth");
+      if (!token) {
+        toast.error("Authentication required");
+        return;
+      }
+
+      await axios.delete(`/api/patient/appointments/${appointmentId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      // Update UI after deletion
+      setAppointments((prev) =>
+        prev.filter((appt) => appt._id !== appointmentId)
+      );
+      toast.success("Appointment cancelled successfully");
+    } catch (error) {
+      toast.error("Failed to cancel appointment");
+    }
+  };
+
   
   const getStatusIcon = (status) => {
     switch (status) {
@@ -335,17 +360,16 @@ const AppointmentsHistory = ({setActiveTab}) => {
                       </div>
                       
                       <div className="mt-6 flex flex-wrap gap-3">
-                        {appointment.status === "Accepted" && (
-                          <button className="flex-1 px-4 py-3 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-lg hover:from-indigo-700 hover:to-blue-700 transition-all shadow-md font-medium flex items-center justify-center">
-                            <Video size={18} className="mr-2" />
-                            Join Video Call
-                          </button>
-                        )}
+                      
                         {appointment.status === "Pending" && (
-                          <button className="flex-1 px-4 py-3 text-red-600 bg-white border-2 border-red-200 rounded-lg hover:bg-red-50 transition-all font-medium flex items-center justify-center">
+                          <>
+                          <button onClick={() => cancelAppointment(appointment._id)} className="flex-1 px-4 py-3 text-red-600 bg-white border-2 border-red-200 rounded-lg hover:bg-red-50 transition-all font-medium flex items-center justify-center">
                             <XCircle size={18} className="mr-2" />
                             Cancel Appointment
                           </button>
+
+                          
+                          </>
                         )}
                         {appointment.status === "Completed" && (
                           <button className="flex-1 px-4 py-3 bg-white border-2 border-indigo-300 text-indigo-600 rounded-lg hover:bg-indigo-50 transition-all font-medium flex items-center justify-center">
@@ -353,16 +377,46 @@ const AppointmentsHistory = ({setActiveTab}) => {
                             View Prescription
                           </button>
                         )}
-                        <button className="px-4 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all flex items-center justify-center">
-                          <Clock size={18} className="mr-2" />
-                          Reschedule
-                        </button>
+                        
                       </div>
                     </div>
+                   {appointment.prescription && appointment.prescription.length > 0 && (
+  <div className="md:col-span-2 bg-green-50 p-4 rounded-lg mt-4">
+    <h4 className="font-medium text-green-700 mb-4 flex items-center">
+      <FileCheck size={18} className="text-green-600 mr-2" />
+      Prescription
+    </h4>
+    
+    <div className="flex flex-wrap gap-4">
+      {appointment.prescription.map((item, index) => (
+        <div
+          key={index}
+          className="bg-white border border-green-200 rounded-lg p-4 w-full sm:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-0.5rem)] shadow-sm"
+        >
+          <p className="text-sm text-gray-700 mb-2">
+            <span className="font-semibold">Medicine:</span> {item.medicine}
+          </p>
+          <p className="text-sm text-gray-700 mb-2">
+            <span className="font-semibold">Dosage:</span> {item.dosage}
+          </p>
+          <p className="text-sm text-gray-700">
+            <span className="font-semibold">Instructions:</span> {item.instructions}
+          </p>
+        </div>
+      ))}
+    </div>
+  </div>
+)}
+
+
                   </div>
                 </div>
+
+                
               )}
             </div>
+
+            
           ))}
         </div>
       )}

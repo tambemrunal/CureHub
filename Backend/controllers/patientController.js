@@ -86,6 +86,46 @@ export const bookAppointment = async (req, res) => {
   }
 };
 
+//cancle Appointment
+export const cancelAppointment = async (req, res) => {
+  try {
+    const { id } = req.params;  // Capture the appointment ID from the URL
+    const patientId = req.user._id;
+
+    // Find appointment
+    const appointment = await Appointment.findById(id); // Use `id` here to match the route
+
+    if (!appointment) {
+      return res.status(404).json({ message: "Appointment not found" });
+    }
+
+    // Ensure the appointment belongs to the logged-in patient
+    if (appointment.patientId.toString() !== patientId.toString()) {
+      return res.status(403).json({ message: "Unauthorized action" });
+    }
+
+    // Update appointment status to "Cancelled"
+    appointment.status = "Cancelled";
+    await appointment.save();
+
+    // Also update status in Patient's medicalHistory
+    await Patient.findByIdAndUpdate(patientId, {
+      $set: {
+        "medicalHistory.$[elem].status": "Cancelled",
+      },
+    }, {
+      arrayFilters: [{ "elem.date": appointment.date, "elem.time": appointment.time }],
+      new: true,
+    });
+
+    res.status(200).json({ message: "Appointment cancelled successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
+
 // Get patient appointments
 export const getPatientAppointments = async (req, res) => {
   try {

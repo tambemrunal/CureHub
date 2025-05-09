@@ -8,6 +8,7 @@ import {
   handleChatbotRequest,
   analyzeReport,
   recommendDoctors,
+  cancelAppointment,
 } from "../controllers/patientController.js";
 import { protect } from "../middleware/authMiddleware.js";
 // const multer = require("multer");
@@ -21,6 +22,7 @@ router.get("/doctors", protect, getDoctorsWithAvailability);
 router.get("/doctors/data", getDoctorsWithAvailability);
 router.post("/appointments", protect, bookAppointment);
 router.get("/appointments", protect, getPatientAppointments);
+router.delete("/appointments/:id", protect, cancelAppointment);
 router.put("/profile", protect, updatePatientProfile);
 // Chatbot route
 router.post("/chatbot", handleChatbotRequest);

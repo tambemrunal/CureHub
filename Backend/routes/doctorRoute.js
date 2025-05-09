@@ -9,6 +9,7 @@ import {
   getAvailability,
   getPatientAppointments,
   updateAppointmentStatus,
+  removeAvailabilitySlot
 } from "../controllers/doctorController.js";
 import { protect } from "../middleware/authMiddleware.js";
 import {
@@ -23,7 +24,7 @@ router.post("/availability", protect, addAvailability);
 router.get("/availability", protect, getAvailability);
 router.get("/appointments", protect, getPatientAppointments);
 router.put("/appointments", protect, updateAppointmentStatus);
-
+router.delete('/availability', protect, removeAvailabilitySlot);
 router.get("/accepted-patients", protect, getAcceptedPatients);
 router.put(
   "/appointments/:appointmentId/prescription",

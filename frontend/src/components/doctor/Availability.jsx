@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
@@ -45,7 +44,7 @@ const Availability = ({ doctorId }) => {
       await axios.post(
         "/api/doctor/availability",
         { date: formattedDate, timeSlots: [newTimeSlot] },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token} }` }}
       );
       
       await fetchAvailability();
@@ -58,11 +57,32 @@ const Availability = ({ doctorId }) => {
     }
   };
 
+  const handleDeleteTimeSlot = async (date, time) => {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.delete("/api/doctor/availability", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        data: {
+          date,
+          time,
+        },
+      });
+  
+      await fetchAvailability();
+      toast.success("Time slot removed successfully!");
+    } catch (error) {
+      toast.error("Error removing time slot");
+    }
+  };
+  
+
   const handleRemoveTimeSlot = async (date, timeSlot) => {
     try {
       const token = localStorage.getItem("token");
       await axios.delete("/api/doctor/availability", {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: ` Bearer ${token} `},
         data: { date, timeSlot }
       });
       
@@ -174,7 +194,7 @@ const Availability = ({ doctorId }) => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {availability.map((day) => {
+            {availability.slice().sort((a, b) => new Date(b.date) - new Date(a.date)).map((day) => {
               const date = new Date(day.date);
               return (
                 <div 

@@ -202,6 +202,41 @@ export const getPatientAppointments = async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 };
+
+export const removeAvailabilitySlot = async (req, res) => {
+  try {
+    const { date, time } = req.body;
+
+    const doctor = await Doctor.findById(req.user._id);
+
+    if (!doctor) {
+      return res.status(404).json({ message: 'Doctor not found' });
+    }
+
+    // Find the date entry
+    const dateEntry = doctor.availability.find(a => a.date === date);
+
+    if (!dateEntry) {
+      return res.status(404).json({ message: 'Date not found in availability' });
+    }
+
+    // Remove the specific time slot
+    dateEntry.timeSlots = dateEntry.timeSlots.filter(t => t !== time);
+
+    // If no time slots left for the date, remove the date entry
+    if (dateEntry.timeSlots.length === 0) {
+      doctor.availability = doctor.availability.filter(a => a.date !== date);
+    }
+
+    await doctor.save();
+
+    res.json(doctor.availability);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
+
 export const updateAppointmentStatus = async (req, res) => {
   try {
     const { appointmentId, status } = req.body;

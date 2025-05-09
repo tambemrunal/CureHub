@@ -33,7 +33,7 @@ const appointmentSchema = new mongoose.Schema(
     ], // Added prescription field
     status: {
       type: String,
-      enum: ["Accepted", "Rejected", "Pending"],
+      enum: ["Accepted", "Rejected", "Pending" , "Cancelled"],
       default: "Pending",
     },
   },

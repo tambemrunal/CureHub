@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState , useEffect} from "react";
 import DashboardLayout from "../components/patient/DashboardLayout";
 import BookAppointment from "../components/patient/BookAppointment";
 import AppointmentsHistory from "../components/patient/AppointmentsHistory";
@@ -9,9 +9,18 @@ import FileUpload from "../components/patient/FileUpload";
 import MedicalVideoSearch from "../components/patient/MedicalVideoSearch";
 import DoctorRecommendation from "../components/patient/DoctorRecommendation";
 import MedicineAnalyzer from "../components/patient/MedicineAnalyzer";
+import { useNavigate } from "react-router-dom";
 
 const PatientDashboard = () => {
   const [activeTab, setActiveTab] = useState("book");
+   const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem("patientAuth"); 
+    if (!token) {
+      navigate("/login");
+    }
+  }, [navigate]);
 
   const tabs = [
     {

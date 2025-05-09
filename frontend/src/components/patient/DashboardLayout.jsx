@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect  } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   User,
   Calendar,
@@ -19,6 +20,7 @@ import { toast } from "react-toastify";
 import PopupModal from "../../model/PopUpModal";
 
 const DashboardLayout = ({ children, activeTab, setActiveTab }) => {
+   const navigate = useNavigate();
   const [isSidebarOpen, setSidebarOpen] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
@@ -83,12 +85,9 @@ const DashboardLayout = ({ children, activeTab, setActiveTab }) => {
   };
 
   const handleLogout = () => {
-    // Add logout animation
-    setSidebarOpen(false);
-    setTimeout(() => {
-      localStorage.removeItem("patientAuth");
+    localStorage.removeItem("patientAuth");
+       navigate("/login");
       toast.success("Logged out successfully");
-    }, 300);
   };
 
   const showNotification = (message) => {
