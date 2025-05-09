@@ -267,47 +267,96 @@ export const updateAppointmentStatus = async (req, res) => {
 };
 
 // Add prescription to an accepted patient
+// import Appointment from "../models/appointmentModel.js";
 const addPrescription = async (req, res) => {
   try {
-    const { patientId, recordId } = req.params;
-    const { prescription } = req.body;
-    console.log({ patientId, recordId });
+    const { appointmentId } = req.params;
+    const { prescription, doctorId } = req.body;
 
+    // Validate input data
+    if (!appointmentId || !doctorId) {
+      return res.status(400).json({
+        message: "Appointment ID and Doctor ID are required",
+      });
+    }
+
+    // Validate prescription format
+    if (!prescription || !Array.isArray(prescription)) {
+      return res.status(400).json({
+        message: "Prescription must be an array of medicine objects",
+      });
+    } // Removed the semicolon here
+
+    // Validate each prescription item
+    for (const item of prescription) {
+      if (!item.medicine || item.medicine.trim() === "") {
+        return res.status(400).json({
+          message: "Medicine name cannot be empty for any prescription item",
+        });
+      }
+      if (!item.dosage || item.dosage.trim() === "") {
+        return res.status(400).json({
+          message: "Dosage cannot be empty for any prescription item",
+        });
+      }
+      // instructions is optional, so no validation needed
+    }
+
+    // Rest of your function remains the same...
     // Validate IDs
     if (
-      !mongoose.Types.ObjectId.isValid(patientId) ||
-      !mongoose.Types.ObjectId.isValid(recordId)
+      !mongoose.Types.ObjectId.isValid(appointmentId) ||
+      !mongoose.Types.ObjectId.isValid(doctorId)
     ) {
-      return res.status(400).json({ message: "Invalid ID" });
+      return res.status(400).json({ message: "Invalid ID format" });
     }
 
-    // Find the patient
-    const patient = await Patient.findById(patientId);
-
-    // Find the specific medical record
-    const medicalRecord = patient.medicalHistory.id(recordId);
-    if (!medicalRecord) {
-      return res.status(404).json({ message: "Medical record not found" });
+    // Find the appointment
+    const appointment = await Appointment.findById(appointmentId);
+    if (!appointment) {
+      return res.status(404).json({ message: "Appointment not found" });
     }
 
-    // Check if the doctor is the one who accepted the case
+    // Check if the doctor is the one assigned to this appointment
+    if (appointment.doctorId.toString() !== doctorId) {
+      return res.status(403).json({
+        message:
+          "Only the assigned doctor can add prescriptions to this appointment",
+      });
+    }
 
-    // Update the prescription
-    medicalRecord.prescription = prescription;
+    // Check if the appointment was accepted
+    if (appointment.status !== "Accepted") {
+      return res.status(403).json({
+        message: "Prescriptions can only be added to accepted appointments",
+      });
+    }
 
-    // Save the patient
-    await patient.save();
+    // Update the prescription (replace entire array)
+    appointment.prescription = prescription;
+    await appointment.save();
 
     res.status(200).json({
       message: "Prescription added successfully",
-      medicalRecord,
+      appointment: {
+        _id: appointment._id,
+        patientId: appointment.patientId,
+        doctorId: appointment.doctorId,
+        symptoms: appointment.symptoms,
+        date: appointment.date,
+        time: appointment.time,
+        status: appointment.status,
+        prescription: appointment.prescription,
+      },
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server error" });
+    console.error("Error adding prescription:", error);
+    res.status(500).json({
+      message: "Server error",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
+    });
   }
 };
-
 // Get all accepted patients for the doctor
 const getAcceptedPatients = async (req, res) => {
   console.log(req.query);

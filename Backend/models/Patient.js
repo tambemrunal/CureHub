@@ -48,4 +48,3 @@ patientSchema.methods.matchPassword = async function (enteredPassword) {
 const Patient = mongoose.model("Patient", patientSchema);
 
 export default Patient;
-// one‑off check: run this in your REPL or a script

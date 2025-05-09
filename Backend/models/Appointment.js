@@ -24,6 +24,13 @@ const appointmentSchema = new mongoose.Schema(
       type: String, // Storing as a string (HH:MM AM/PM)
       required: true,
     },
+    prescription: [
+      {
+        medicine: String,
+        dosage: String,
+        instructions: String,
+      },
+    ], // Added prescription field
     status: {
       type: String,
       enum: ["Accepted", "Rejected", "Pending"],

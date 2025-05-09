@@ -26,7 +26,7 @@ router.put("/appointments", protect, updateAppointmentStatus);
 
 router.get("/accepted-patients", protect, getAcceptedPatients);
 router.put(
-  "/patients/:patientId/records/:recordId/prescription",
+  "/appointments/:appointmentId/prescription",
   protect,
   addPrescription
 );
