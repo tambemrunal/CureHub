@@ -201,13 +201,13 @@ function DoctorList() {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                             <div className="flex justify-end space-x-2">
-                              <motion.button
+                              {/* <motion.button
                                 whileHover={{ scale: 1.1 }}
                                 whileTap={{ scale: 0.9 }}
                                 className="p-2 rounded-full text-blue-600 hover:bg-blue-100 transition-colors"
                               >
                                 <Edit size={18} />
-                              </motion.button>
+                              </motion.button> */}
                               <motion.button
                                 whileHover={{ scale: 1.1 }}
                                 whileTap={{ scale: 0.9 }}

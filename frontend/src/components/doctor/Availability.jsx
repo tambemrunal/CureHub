@@ -37,14 +37,19 @@ const Availability = ({ doctorId }) => {
     }
     
     setAddingSlot(true);
-    const formattedDate = newDate.toISOString().split("T")[0];
+
+    // Build YYYY-MM-DD from local date components to avoid UTC shift:
+    const year  = newDate.getFullYear();
+    const month = String(newDate.getMonth() + 1).padStart(2, '0');
+    const day   = String(newDate.getDate()).padStart(2, '0');
+    const formattedDate = `${year}-${month}-${day}`;
     
     try {
       const token = localStorage.getItem("token");
       await axios.post(
         "/api/doctor/availability",
         { date: formattedDate, timeSlots: [newTimeSlot] },
-        { headers: { Authorization: `Bearer ${token} }` }}
+        { headers: { Authorization: `Bearer ${token}` } }
       );
       
       await fetchAvailability();
@@ -57,46 +62,26 @@ const Availability = ({ doctorId }) => {
     }
   };
 
-  const handleDeleteTimeSlot = async (date, time) => {
-    try {
-      const token = localStorage.getItem("token");
-      await axios.delete("/api/doctor/availability", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        data: {
-          date,
-          time,
-        },
-      });
-  
-      await fetchAvailability();
-      toast.success("Time slot removed successfully!");
-    } catch (error) {
-      toast.error("Error removing time slot");
-    }
-  };
-  
-
   const handleRemoveTimeSlot = async (date, timeSlot) => {
     try {
       const token = localStorage.getItem("token");
       await axios.delete("/api/doctor/availability", {
-        headers: { Authorization: ` Bearer ${token} `},
+        headers: { Authorization: `Bearer ${token}` },
         data: { date, timeSlot }
       });
       
-      // Update local state
       setAvailability(prev => 
-        prev.map(day => {
-          if (day.date === date) {
-            return {
-              ...day,
-              timeSlots: day.timeSlots.filter(time => time !== timeSlot)
-            };
-          }
-          return day;
-        }).filter(day => day.timeSlots.length > 0)
+        prev
+          .map(day => {
+            if (day.date === date) {
+              return {
+                ...day,
+                timeSlots: day.timeSlots.filter(t => t !== timeSlot)
+              };
+            }
+            return day;
+          })
+          .filter(day => day.timeSlots.length > 0)
       );
       
       toast.success("Time slot removed");
@@ -140,9 +125,10 @@ const Availability = ({ doctorId }) => {
               </div>
               <DatePicker
                 selected={newDate}
-                onChange={(date) => setNewDate(date)}
+                onChange={setNewDate}
                 className="pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 minDate={new Date()}
+                maxDate={new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0)}
                 dateFormat="MMMM d, yyyy"
               />
             </div>
@@ -156,7 +142,7 @@ const Availability = ({ doctorId }) => {
               <input
                 type="time"
                 value={newTimeSlot}
-                onChange={(e) => setNewTimeSlot(e.target.value)}
+                onChange={e => setNewTimeSlot(e.target.value)}
                 className="pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
@@ -168,9 +154,9 @@ const Availability = ({ doctorId }) => {
           >
             {addingSlot ? (
               <>
-                <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
                 </svg>
                 Adding...
               </>
@@ -194,36 +180,50 @@ const Availability = ({ doctorId }) => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {availability.slice().sort((a, b) => new Date(b.date) - new Date(a.date)).map((day) => {
-              const date = new Date(day.date);
-              return (
-                <div 
-                  key={day.date} 
-                  className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow transition-shadow overflow-hidden"
-                >
-                  <div className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-4 py-3">
-                    <h4 className="font-medium">{date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}</h4>
-                  </div>
-                  <div className="p-4">
-                    <div className="flex flex-wrap gap-2">
-                      {day.timeSlots.map((time, index) => (
-                        <div key={index} className="group bg-blue-50 rounded-full px-3 py-1 flex items-center">
-                          <Clock size={14} className="text-blue-500 mr-1" />
-                          <span className="text-sm">{time}</span>
-                          <button 
-                            onClick={() => handleRemoveTimeSlot(day.date, time)}
-                            className="ml-1 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"
-                            title="Remove time slot"
-                          >
-                            <Trash2 size={14} className="text-red-500 hover:text-red-700" />
-                          </button>
-                        </div>
-                      ))}
+            {availability
+              .map(day => {
+                const [y, m, d] = day.date.split('-').map(Number);
+                return { ...day, localDate: new Date(y, m - 1, d) };
+              })
+              .filter(day => {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                return day.localDate >= today;
+              })
+              .sort((a, b) => a.localDate - b.localDate)
+              .map(day => {
+                const date = day.localDate;
+                return (
+                  <div key={day.date} className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow transition-shadow overflow-hidden">
+                    <div className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-4 py-3">
+                      <h4 className="font-medium">
+                        {date.toLocaleDateString('en-US', {
+                          weekday: 'long',
+                          month: 'short',
+                          day: 'numeric'
+                        })}
+                      </h4>
+                    </div>
+                    <div className="p-4">
+                      <div className="flex flex-wrap gap-2">
+                        {day.timeSlots.map((time, idx) => (
+                          <div key={idx} className="group bg-blue-50 rounded-full px-3 py-1 flex items-center">
+                            <Clock size={14} className="text-blue-500 mr-1" />
+                            <span className="text-sm">{time}</span>
+                            <button
+                              onClick={() => handleRemoveTimeSlot(day.date, time)}
+                              className="ml-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                              title="Remove time slot"
+                            >
+                              <Trash2 size={14} className="text-red-500 hover:text-red-700" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
           </div>
         )}
       </div>

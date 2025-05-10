@@ -12,6 +12,8 @@ import {
   X,
   Home,
   ChevronRight,
+  FileText,
+  History,
 } from "lucide-react";
 import EditProfile from "../components/doctor/EditProfile";
 import Availability from "../components/doctor/Availability";
@@ -20,16 +22,33 @@ import PopupModal from "../model/PopUpModal";
 import DoctorPrescriptionDashboard from "../components/doctor/DoctorPrescriptionDashboard ";
 import FilledAppointmentsDashboard from "../components/doctor/FilledAppointmentsDashboard";
 
-
-
-
 const DoctorDashboard = () => {
   const [activeTab, setActiveTab] = useState("profile");
   const [doctor, setDoctor] = useState(null);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
   const navigate = useNavigate();
+
+  // Check screen size on mount and when window resizes
+  useEffect(() => {
+    const checkScreenSize = () => {
+      if (window.innerWidth >= 1024) { // lg breakpoint
+        setIsSidebarOpen(true);
+      } else {
+        setIsSidebarOpen(false);
+      }
+    };
+    
+    // Set initial state
+    checkScreenSize();
+    
+    // Add event listener
+    window.addEventListener('resize', checkScreenSize);
+    
+    // Clean up
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
 
   useEffect(() => {
     const fetchDoctorProfile = async () => {
@@ -39,7 +58,6 @@ const DoctorDashboard = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         setDoctor(response.data);
-        console.log("Doctor are", response.data);
         // Welcome modal for doctors
         setModalMessage(`Welcome back, Dr. ${response.data.name}!`);
         setShowModal(true);
@@ -56,6 +74,14 @@ const DoctorDashboard = () => {
     localStorage.removeItem("token");
     navigate("/login");
     toast.success("Logged out successfully");
+  };
+  
+  const handleTabChange = (tabId) => {
+    setActiveTab(tabId);
+    // Close sidebar on mobile after tab selection
+    if (window.innerWidth < 1024) {
+      setIsSidebarOpen(false);
+    }
   };
 
   if (!doctor) {
@@ -89,22 +115,30 @@ const DoctorDashboard = () => {
     {
       id: "prescription",
       label: "Give Prescription",
-      icon: <Calendar className="mr-3" size={20} />,
+      icon: <FileText className="mr-3" size={20} />,
     },
     {
       id: "prescriptionhistory",
       label: "User Prescription History",
-      icon: <Calendar className="mr-3" size={20} />,
+      icon: <History className="mr-3" size={20} />,
     },
   ];
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
+    <div className="flex flex-col lg:flex-row min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
+      {/* Overlay for mobile sidebar */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+      
       {/* Sidebar */}
       <div
-        className={`fixed lg:static inset-y-0 left-0 z-10 bg-white shadow-lg transition-all duration-300 ease-in-out transform ${
-          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } lg:translate-x-0 ${isSidebarOpen ? "w-64" : "w-0"} lg:w-64`}
+        className={`fixed lg:relative inset-y-0 left-0 z-30 bg-white shadow-lg transition-all duration-300 ease-in-out transform 
+          ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
+          lg:translate-x-0 w-72 sm:w-80 lg:w-64 overflow-y-auto`}
       >
         <div className="h-full flex flex-col">
           <div className="flex items-center justify-between p-4 border-b border-blue-100">
@@ -137,7 +171,7 @@ const DoctorDashboard = () => {
               {menuItems.map((item) => (
                 <li key={item.id}>
                   <button
-                    onClick={() => setActiveTab(item.id)}
+                    onClick={() => handleTabChange(item.id)}
                     className={`w-full flex items-center px-4 py-3 transition-colors duration-200 ${
                       activeTab === item.id
                         ? "bg-gradient-to-r from-blue-50 to-indigo-50 text-indigo-700 border-r-4 border-indigo-500"
@@ -168,42 +202,51 @@ const DoctorDashboard = () => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-grow">
+      <div className="flex-grow w-full lg:ml-0 flex flex-col">
         {/* Top Bar */}
-        <div className="bg-white shadow-sm p-4 flex items-center">
+        <div className="bg-white shadow-sm p-4 flex items-center sticky top-0 z-10">
           <button
             className="lg:hidden mr-4 text-gray-600 hover:text-gray-800"
             onClick={() => setIsSidebarOpen(true)}
           >
             <Menu size={24} />
           </button>
-          <div className="flex items-center">
+          <div className="flex items-center flex-grow">
             <Home size={20} className="text-indigo-500 mr-2" />
             <span className="text-gray-500">/</span>
             <span className="ml-2 font-medium text-gray-800 capitalize">
               {activeTab}
             </span>
           </div>
+          
+          {/* Mobile user info */}
+          <div className="lg:hidden flex items-center">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-400 to-indigo-500 flex items-center justify-center">
+              <UserCircle size={20} className="text-white" />
+            </div>
+          </div>
         </div>
 
         {/* Content Area */}
-        <div className="container mx-auto p-4 sm:p-6">
-          <div className="bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg animate-fade-in">
-            {activeTab === "profile" && (
-              <EditProfile doctor={doctor} setDoctor={setDoctor} />
-            )}
-            {activeTab === "availability" && (
-              <Availability doctorId={doctor._id} />
-            )}
-            {activeTab === "appointments" && (
-              <Appointments doctorId={doctor._id} />
-            )}
-            {activeTab === "prescription" && (
-              <DoctorPrescriptionDashboard doctorId={doctor._id} />
-            )}
-             {activeTab === "prescriptionhistory" && (
-              <FilledAppointmentsDashboard />
-            )}
+        <div className="flex-grow p-3 sm:p-4 md:p-6">
+          <div className="bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg">
+            <div className="p-3 sm:p-4 md:p-6">
+              {activeTab === "profile" && (
+                <EditProfile doctor={doctor} setDoctor={setDoctor} />
+              )}
+              {activeTab === "availability" && (
+                <Availability doctorId={doctor._id} />
+              )}
+              {activeTab === "appointments" && (
+                <Appointments doctorId={doctor._id} />
+              )}
+              {activeTab === "prescription" && (
+                <DoctorPrescriptionDashboard doctorId={doctor._id} />
+              )}
+              {activeTab === "prescriptionhistory" && (
+                <FilledAppointmentsDashboard />
+              )}
+            </div>
           </div>
         </div>
       </div>

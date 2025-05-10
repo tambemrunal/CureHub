@@ -66,37 +66,46 @@ export const updateDoctorProfile = async (req, res) => {
 };
 
 // Add availability slots
+
+const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
 export const addAvailability = async (req, res) => {
   try {
     const { date, timeSlots } = req.body;
 
-    const doctor = await Doctor.findById(req.user._id);
+    // 1) Validate date format
+    if (!ISO_DATE_RE.test(date)) {
+      return res.status(400).json({ message: "Invalid date format. Use YYYY-MM-DD." });
+    }
 
+    const doctor = await Doctor.findById(req.user._id);
     if (!doctor) {
       return res.status(404).json({ message: "Doctor not found" });
     }
 
-    // Check if date already exists
-    const existingDateIndex = doctor.availability.findIndex(
-      (a) => a.date === date
-    );
+    // 2) Find existing date entry
+    const idx = doctor.availability.findIndex(a => a.date === date);
 
-    if (existingDateIndex >= 0) {
-      // Merge time slots if date exists
-      const existingSlots = doctor.availability[existingDateIndex].timeSlots;
-      const newSlots = [...new Set([...existingSlots, ...timeSlots])]; // Remove duplicates
-      doctor.availability[existingDateIndex].timeSlots = newSlots;
+    if (idx >= 0) {
+      // Merge and de-duplicate slots
+      const existing = doctor.availability[idx].timeSlots;
+      const merged = Array.from(new Set([...existing, ...timeSlots]));
+      doctor.availability[idx].timeSlots = merged;
     } else {
-      // Add new date with time slots
+      // Push new date + slots
       doctor.availability.push({ date, timeSlots });
     }
 
+    // 3) Sort by date string ascending
+    doctor.availability.sort((a, b) => a.date.localeCompare(b.date));
+
     await doctor.save();
 
-    res.json(doctor.availability);
+    // 4) Return the cleaned, sorted availability
+    return res.json(doctor.availability);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server Error" });
+    console.error("addAvailability error:", error);
+    return res.status(500).json({ message: "Server Error" });
   }
 };
 
@@ -104,10 +113,19 @@ export const addAvailability = async (req, res) => {
 export const getAvailability = async (req, res) => {
   try {
     const doctor = await Doctor.findById(req.user._id).select("availability");
-    res.json(doctor.availability);
+    if (!doctor) {
+      return res.status(404).json({ message: "Doctor not found" });
+    }
+
+    // Make a shallow copy and sort by date string (YYYY-MM-DD)
+    const sortedAvailability = [...doctor.availability].sort((a, b) =>
+      a.date.localeCompare(b.date)
+    );
+
+    return res.json(sortedAvailability);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server Error" });
+    console.error("getAvailability error:", error);
+    return res.status(500).json({ message: "Server Error" });
   }
 };
 
@@ -207,37 +225,45 @@ export const getPatientAppointments = async (req, res) => {
 
 export const removeAvailabilitySlot = async (req, res) => {
   try {
-    const { date, time } = req.body;
+    const { date, timeSlot } = req.body;
+
+    // 1) Validate date format
+    if (!ISO_DATE_RE.test(date)) {
+      return res.status(400).json({ message: "Invalid date format. Use YYYY-MM-DD." });
+    }
 
     const doctor = await Doctor.findById(req.user._id);
-
     if (!doctor) {
-      return res.status(404).json({ message: 'Doctor not found' });
+      return res.status(404).json({ message: "Doctor not found" });
     }
 
-    // Find the date entry
+    // 2) Find the date entry
     const dateEntry = doctor.availability.find(a => a.date === date);
-
     if (!dateEntry) {
-      return res.status(404).json({ message: 'Date not found in availability' });
+      return res.status(404).json({ message: "Date not found in availability" });
     }
 
-    // Remove the specific time slot
-    dateEntry.timeSlots = dateEntry.timeSlots.filter(t => t !== time);
+    // 3) Remove the specific time slot
+    dateEntry.timeSlots = dateEntry.timeSlots.filter(t => t !== timeSlot);
 
-    // If no time slots left for the date, remove the date entry
+    // 4) If no slots remain for that date, remove the date entry entirely
     if (dateEntry.timeSlots.length === 0) {
       doctor.availability = doctor.availability.filter(a => a.date !== date);
     }
 
+    // 5) Sort availability ascending by date string
+    doctor.availability.sort((a, b) => a.date.localeCompare(b.date));
+
     await doctor.save();
 
-    res.json(doctor.availability);
+    // 6) Return the updated, sorted availability
+    return res.json(doctor.availability);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server Error' });
+    console.error("removeAvailabilitySlot error:", error);
+    return res.status(500).json({ message: "Server Error" });
   }
 };
+
 
 export const updateAppointmentStatus = async (req, res) => {
   try {

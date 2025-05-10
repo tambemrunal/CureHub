@@ -16,11 +16,21 @@ const doctorSchema = mongoose.Schema(
     experience: { type: String },
     bio: { type: String },
     availability: [
-      {
-        date: String,
-        timeSlots: [String],
+    {
+      date: {
+        type: String,
+        required: true,           // e.g. "2025-05-11"
+        match: /^\d{4}-\d{2}-\d{2}$/  // optional: enforce YYYY-MM-DD
       },
-    ],
+      timeSlots: [
+        {
+          type: String,
+          required: true          // e.g. "13:00"
+        }
+      ]
+    }
+  ],
+
     ratings: {
       averageRating: { type: Number, default: 0 }, // Average rating for the doctor
       totalRatings: { type: Number, default: 0 }, // Total number of ratings

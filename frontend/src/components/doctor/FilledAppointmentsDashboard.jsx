@@ -6,6 +6,7 @@ const FilledAppointmentsDashboard = ({ doctorId }) => {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
 
   const fetchAppointments = async () => {
     setLoading(true);
@@ -29,6 +30,10 @@ const FilledAppointmentsDashboard = ({ doctorId }) => {
     fetchAppointments();
   }, []);
   
+  // 🆕 Filtered Appointments
+  const filteredAppointments = appointments.filter((appt) =>
+    appt.patientName.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   if (loading) {
     return (
@@ -103,9 +108,20 @@ const FilledAppointmentsDashboard = ({ doctorId }) => {
           Filled Prescriptions
         </motion.h1>
 
+        {/* 🆕 Search Bar */}
+        <div className="mb-6">
+          <input
+            type="text"
+            placeholder="Search by patient name..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full sm:w-1/2 px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+          />
+        </div>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <AnimatePresence>
-            {appointments.map((appt, idx) => (
+            {filteredAppointments.map((appt, idx) => (
               <motion.div
                 key={appt.appointmentId}
                 initial={{ opacity: 0, y: 20 }}

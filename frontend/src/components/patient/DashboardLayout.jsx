@@ -1,4 +1,4 @@
-import React, { useState, useEffect  } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   User,
@@ -20,12 +20,32 @@ import { toast } from "react-toastify";
 import PopupModal from "../../model/PopUpModal";
 
 const DashboardLayout = ({ children, activeTab, setActiveTab }) => {
-   const navigate = useNavigate();
-  const [isSidebarOpen, setSidebarOpen] = useState(true);
+  const navigate = useNavigate();
+  const [isSidebarOpen, setSidebarOpen] = useState(false); // Default closed on mobile
   const [showModal, setShowModal] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
   const [expanded, setExpanded] = useState(null);
   const [animate, setAnimate] = useState(false);
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
+  // Track window width for responsive behavior
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+      // Auto open sidebar on desktop
+      if (window.innerWidth >= 768) {
+        setSidebarOpen(true);
+      } else {
+        setSidebarOpen(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    // Initial call to set correct state
+    handleResize();
+    
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Add animation effect when component mounts
   useEffect(() => {
@@ -86,8 +106,8 @@ const DashboardLayout = ({ children, activeTab, setActiveTab }) => {
 
   const handleLogout = () => {
     localStorage.removeItem("patientAuth");
-       navigate("/login");
-      toast.success("Logged out successfully");
+    navigate("/login");
+    toast.success("Logged out successfully");
   };
 
   const showNotification = (message) => {
@@ -99,8 +119,16 @@ const DashboardLayout = ({ children, activeTab, setActiveTab }) => {
     setExpanded(expanded === group ? null : group);
   };
 
+  // Close sidebar when clicking a menu item on mobile
+  const handleMenuItemClick = (tabId) => {
+    setActiveTab(tabId);
+    if (windowWidth < 768) {
+      setSidebarOpen(false);
+    }
+  };
+
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex flex-col md:flex-row h-screen bg-gray-50 overflow-hidden">
       {/* Sidebar Overlay (Mobile) */}
       {isSidebarOpen && (
         <div
@@ -111,22 +139,22 @@ const DashboardLayout = ({ children, activeTab, setActiveTab }) => {
 
       {/* Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 w-72 bg-gradient-to-br from-indigo-800 via-indigo-700 to-indigo-900 text-white transition-all duration-300 ease-out transform ${
+        className={`fixed md:relative inset-y-0 left-0 z-50 w-4/5 sm:w-72 md:w-64 lg:w-72 bg-gradient-to-br from-indigo-800 via-indigo-700 to-indigo-900 text-white transition-all duration-300 ease-out transform ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } md:relative md:translate-x-0 flex flex-col shadow-2xl ${
+        } md:translate-x-0 flex flex-col shadow-2xl ${
           animate ? "animate-sidebar-entry" : ""
         }`}
       >
         {/* Sidebar Header */}
         <div className="flex items-center justify-between h-16 px-4 border-b border-indigo-500/30 bg-indigo-900/50 backdrop-blur-sm">
           <div className="flex items-center space-x-3">
-            <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center backdrop-blur-sm shadow-inner border border-white/10 transition-all duration-500 hover:scale-110">
-              <span className="text-white font-bold text-lg bg-gradient-to-br from-white to-indigo-200 bg-clip-text text-transparent">
+            <div className="w-8 h-8 md:w-9 md:h-9 rounded-xl bg-white/10 flex items-center justify-center backdrop-blur-sm shadow-inner border border-white/10 transition-all duration-500 hover:scale-110">
+              <span className="text-white font-bold text-base md:text-lg bg-gradient-to-br from-white to-indigo-200 bg-clip-text text-transparent">
                 CH
               </span>
             </div>
             <div className="overflow-hidden">
-              <h1 className="text-lg font-bold tracking-wide whitespace-nowrap bg-gradient-to-r from-white to-indigo-200 bg-clip-text text-transparent animate-text-shimmer">
+              <h1 className="text-base md:text-lg font-bold tracking-wide whitespace-nowrap bg-gradient-to-r from-white to-indigo-200 bg-clip-text text-transparent animate-text-shimmer">
                 Patient Portal
               </h1>
               <div className="h-0.5 w-full bg-gradient-to-r from-indigo-300 to-transparent rounded-full transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform"></div>
@@ -142,7 +170,7 @@ const DashboardLayout = ({ children, activeTab, setActiveTab }) => {
 
         {/* Sidebar Navigation */}
         <div className="flex-1 overflow-y-auto scrollbar-styled">
-          <nav className="p-3 space-y-6">
+          <nav className="p-2 md:p-3 space-y-4 md:space-y-6">
             {Object.entries(menuGroups).map(([groupName, items]) => (
               <div key={groupName} className="space-y-1">
                 <button
@@ -170,7 +198,7 @@ const DashboardLayout = ({ children, activeTab, setActiveTab }) => {
                       icon={item.icon}
                       label={item.label}
                       active={activeTab === item.id}
-                      onClick={() => setActiveTab(item.id)}
+                      onClick={() => handleMenuItemClick(item.id)}
                     />
                   ))}
                 </div>
@@ -180,13 +208,13 @@ const DashboardLayout = ({ children, activeTab, setActiveTab }) => {
         </div>
 
         {/* User Profile Section */}
-        <div className="px-3 py-4 border-t border-indigo-500/30 bg-indigo-900/20 backdrop-blur-sm">
+        <div className="px-3 py-3 md:py-4 border-t border-indigo-500/30 bg-indigo-900/20 backdrop-blur-sm">
           {/* Sidebar Footer */}
           <button
             onClick={handleLogout}
-            className="flex items-center w-full px-3 py-2.5 mt-2 text-sm font-medium rounded-lg hover:bg-red-500/20 group transition-all duration-300 hover:pl-4"
+            className="flex items-center w-full px-3 py-2 md:py-2.5 mt-1 md:mt-2 text-sm font-medium rounded-lg hover:bg-red-500/20 group transition-all duration-300 hover:pl-4"
           >
-            <div className="p-1.5 rounded-lg bg-red-500/20 mr-2 group-hover:bg-red-500/30 transition-colors">
+            <div className="p-1 md:p-1.5 rounded-lg bg-red-500/20 mr-2 group-hover:bg-red-500/30 transition-colors">
               <LogOut
                 size={16}
                 className="text-red-200 group-hover:text-white transition-colors"
@@ -206,29 +234,44 @@ const DashboardLayout = ({ children, activeTab, setActiveTab }) => {
       </div>
 
       {/* Main Content */}
-      <div className="flex flex-col flex-1 overflow-hidden">
+      <div className="flex flex-col flex-1 w-full overflow-hidden">
         {/* Header */}
-        <header className="flex items-center justify-between h-16 px-6 bg-white border-b shadow-sm">
+        <header className="flex items-center justify-between h-14 md:h-16 px-4 md:px-6 bg-white border-b shadow-sm">
           <button
             onClick={() => setSidebarOpen(true)}
             className="p-1.5 rounded-md md:hidden hover:bg-gray-100 transition-colors"
           >
-            <Menu size={22} />
+            <Menu size={20} />
           </button>
 
-          <div className="flex items-center ml-auto space-x-4">
+          <div className="md:hidden text-center flex-1 font-medium text-gray-800">
+            {/* Mobile title - shows the active section */}
+            {Object.entries(menuGroups).map(([groupName, items]) => {
+              const activeItem = items.find(item => item.id === activeTab);
+              return activeItem ? <span key={activeItem.id}>{activeItem.label}</span> : null;
+            })}
+          </div>
+
+          <div className="flex items-center ml-auto space-x-3 md:space-x-4">
             <button
               onClick={() => showNotification("You have no new notifications")}
-              className="relative p-2 transition-transform rounded-full hover:bg-gray-100 hover:scale-110"
+              className="relative p-1.5 md:p-2 transition-transform rounded-full hover:bg-gray-100 hover:scale-110"
             >
               <Bell size={18} />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+              <span className="absolute top-1 right-1 w-1.5 md:w-2 h-1.5 md:h-2 bg-red-500 rounded-full animate-pulse"></span>
             </button>
+            
+            {/* Optional user avatar for mobile */}
+            <div className="w-8 h-8 md:hidden rounded-full bg-indigo-100 flex items-center justify-center text-xs font-medium text-indigo-700">
+              ME
+            </div>
           </div>
         </header>
 
         {/* Main Content Area */}
-        <main className="flex-1 p-6 overflow-auto">{children}</main>
+        <main className="flex-1 p-4 md:p-6 overflow-auto">
+          {children}
+        </main>
       </div>
 
       {/* Modal */}
@@ -249,7 +292,7 @@ const SidebarLink = ({ icon, label, active, onClick }) => {
   return (
     <button
       onClick={onClick}
-      className={`flex items-center w-full px-3 py-2.5 text-left transition-all duration-300 rounded-lg group text-sm relative overflow-hidden ${
+      className={`flex items-center w-full px-3 py-2 md:py-2.5 text-left transition-all duration-300 rounded-lg group text-sm relative overflow-hidden ${
         active
           ? "bg-gradient-to-r from-indigo-600 to-indigo-500 text-white font-medium shadow-lg"
           : "text-indigo-100 hover:bg-indigo-600/30"
@@ -265,7 +308,7 @@ const SidebarLink = ({ icon, label, active, onClick }) => {
 
       {/* Icon wrapper */}
       <div
-        className={`flex-shrink-0 mr-3 rounded-md p-1.5 transition-all duration-300 ${
+        className={`flex-shrink-0 mr-3 rounded-md p-1 md:p-1.5 transition-all duration-300 ${
           active
             ? "bg-white/20 text-white"
             : "text-indigo-300 group-hover:text-white group-hover:bg-indigo-500/30"
@@ -295,7 +338,7 @@ const GlobalStyles = () => (
   <style jsx global>{`
     /* Custom Scrollbar */
     .scrollbar-styled::-webkit-scrollbar {
-      width: 5px;
+      width: 4px;
     }
 
     .scrollbar-styled::-webkit-scrollbar-track {
@@ -366,6 +409,13 @@ const GlobalStyles = () => (
 
     .animate-sidebar-entry {
       animation: sidebar-entry 0.5s ease-out forwards;
+    }
+    
+    /* Make sure page doesn't overflow */
+    html, body {
+      overflow: hidden;
+      height: 100%;
+      width: 100%;
     }
   `}</style>
 );
